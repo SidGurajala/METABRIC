@@ -30,6 +30,7 @@ h4.date {
 
 # INTRODUCTION 
 
+  
   The Molecular Taxonomy of Breast Cancer International Consortium (METABRIC)
 dataset contains expression, clinical profiles, copy number variants and 
 single nucleotide polymorphism data sequenced from over 2000 primary breast 
@@ -76,7 +77,8 @@ metabric_df$death_from_cancer <- as.numeric(metabric_df$death_from_cancer)
 
 # PCA 
 
-    One of the biggest challenges in dealing with biological data sets is the large
+  
+  One of the biggest challenges in dealing with biological data sets is the large
 number of dimensions, which can often hinder computationally intensive analyses.
 A means to pare down data into essential parts that are representative of 
 the variance found in the whole data set is PCA, or prinicipal component 
@@ -146,7 +148,8 @@ metabric_biplot
 
 ```
 
-  Both of these plots demonstarte that PCA may not be an effective means of 
+  
+  Both of these plots demonstrate that PCA may not be an effective means of 
 decomposition for this data. The biplot shown states that both principal 
 components explain relatively little of the data (6.8% for PC1 and 6.3% for 
 PC2). The screeplot also shows that additional principal components do not 
@@ -157,6 +160,7 @@ these specific data.
 
 # K MEANS CLUSTERING - MODEL SELECTION
 
+  
   K means clustering is to date one of the most popular unsupervised machine 
 learning algorithims. It uses a predetermined number (k) clusters to partition 
 data into groups more homogenous than initial data. Data points are assigned to
@@ -173,6 +177,7 @@ computational tools that can help visualize k means clustering and inform
 decision making. 
 
 ## SSE 
+  
   
   The Sum of Squared Errors is a measurement of the distance of data points 
 from the nearest cluster. Minimizing SSE can help determine the optimal 
@@ -202,6 +207,7 @@ sse_plot <- ggplot(metabric_sse_df, aes(x = clusters, y = sse)) +
 sse_plot
 ```
 
+  
   The key to this visualization is to look for the "elbow:" the point at which
 the addition of more clusters doesn't significantly reduce the sum of squared 
 error. Based on this plot, the elbow appears to be around 7-9 clusters. Further
@@ -209,6 +215,7 @@ tests should better elucidate the best number of clusters.
 
 ## Average Silhouette Width
 
+  
   The silhouette width of kmeans clusters measures the euclidean distance 
 between two clusters. The objective of silhouette width measurements is to 
 maximize the distance, resulting in a high silhouette coefficient. This in 
@@ -238,11 +245,13 @@ sil_plot <- ggplot(metabric_sil_df, aes(x = cluster, y = AvgSilhouetteWidth)) +
 sil_plot
 ```
 
+  
   The silhouette plot indicates that six clusters is the optimal number of 
 clusters for this analysis, with a range between 5 and 8 clusters all having 
 high silhouette values. 
 
 ## Calinski-Harabasz Criterion
+  
   
   The Calinksi-Harabasz index is rooted in the sum of squared error within 
 and between clusters. Maximizing the index involves using iterative kmeans 
@@ -258,6 +267,7 @@ metabric_calinksi <- cascadeKM(metabric_mx[2:490, ], 2, 20, iter = 100)
 plot(metabric_calinksi, sortg = TRUE, grpmts.plot = TRUE)
 ```
 
+  
   While the max Calinski-Harabasz index value is at k = 2 clusters, two clusters
 often result in k means cluster models that are too generalizable and segregates
 points into clusters they may not be homogenous with. Index values between 
@@ -266,6 +276,7 @@ two numbers as a good choice for kmeans cluster analysis.
 
 ## Gap Statistic 
 
+  
   The gap statistic informs on the best cluster number by comparing the 
 log within cluster sum of squares with the expected log sum of squares under 
 a null reference distribution. The optimal number of clusters is selected by
@@ -283,6 +294,7 @@ metabric_gap <- clusGap(metabric_mx[2:490, ], kmeans, 20, B = 100,
 plot(metabric_gap, main = "Gap statistic across 20 clusters")
 ```
 
+  
   While the max gap statistic value is at k = 20, this model would likely be 
 far too specific and would lack robustness with other data sets. The inflection
 point of this plot seems to be at around 6-8 clusters, with values around this 
@@ -292,6 +304,7 @@ data.
 
 # K MEANS CLUSTERING - CLUSTER ANALYSIS 
 
+  
   Given previous tests, the optimal number of clusters seems to be around 4.
 Below I have arranged several different analyses of clustered expression data,
 starting with partioning with k = 4.
@@ -306,6 +319,7 @@ metabric_clust <- kClust$cluster
 
 ## Calculating Centroids and Analyzing Correlations
 
+  
   An after the fact method to validate cluster number selection is to calculate
 cluster centroids and correlate them with each other. Cluster centroids
 displaying a high degree of correlation ( > 0.85) is suggestive of unspecific
@@ -328,12 +342,14 @@ metabric_clust_centroids <- sapply(levels(factor(metabric_clust)),
 cor(metabric_clust_centroids)
 ```
 
+  
   As expected, cluster centroids do not correlate very highly with one another,
 with a maximum correlation value of - 0.531. This validates the choice of k = 4
 clusters, enabling us to move onto deeper analyses. 
 
 ## Visualizing Cluster Expression for 6 patients 
 
+  
   A point of interest is understanding how these clusters behave across 
 different conditions. Oftentimes this is analyzed between two different 
 treatment groups or time points within an experiment. In the case of these data
@@ -380,6 +396,7 @@ patient6_df <- metabric_df_2 %>%
 colnames(patient6_df) <- patient_col_names
 ```
  
+ 
  Using similar methods for Patients 2 through 6, I compiled the expression 
 per cluster into patients_df and plot the expression per cluster per patient
 below. 
@@ -400,6 +417,7 @@ kmeans_patients <- ggplot(data = patientsdf, aes(x = cluster, y = Expression)) +
 kmeans_patients 
 ```
 
+  
   This figure displays the variation in expression patterns between clusters. 
 By and large, patient cluster expression profiles are similar and follow 
 general patterns; with cluster 4 having the most negative normalized
@@ -410,8 +428,8 @@ genetics is shown in clustered expression profiles.
 
 ## Extracting Core Genes 
 
-  A final thing we can do with clustering analysis of RNA seq is to extract core 
-genes, i.e genes that best align with the core of the cluster. This is done 
+  A final analysis we can do with clustering analysis of RNA seq is to extract 
+core genes, i.e genes that best align with the core of the cluster. This is done 
 by analyzing the correlation between each gene in a cluster and the cluster's 
 core. I have done this below and assembled a table of the five genes from each 
 cluster with the highest correlation scores. 
@@ -483,6 +501,7 @@ rownames(core_genes_df) <- c(1:6)
 core_genes_df
 ```
 
+  
   Understanding how core genes align with kmeans cluster cores can help cut down
 on noise in clusters - especially helping distinguish between genes that help
 define a cluster well and genes that clutter a cluster with low correlation 
@@ -514,6 +533,7 @@ plot(metabric_hclust, labels = FALSE, main = "Gene Clustering Dendogram")
 abline(h = 62, lwd = 2)
 ```
 
+  
   The line represents an eyeballed optimal number of clusters, which I have
 determined are around 6 clusters. This number can be used to partition the 
 expression data for further analyses. 
@@ -540,6 +560,7 @@ patient_1_df <- metabric_df_3 %>%
 colnames(patient_1_df) <- patient_col_names
 ```
 
+  
   Using similar methods I calculated expression data per cluster for patients 
 2 through 6 and display the results in the bar plot below. 
 ```{r Hierarchical Clusters Patient 2 - 6, include = FALSE}
@@ -582,6 +603,7 @@ patient_plot <- ggplot(data = patients_df, aes(x = cluster, y = Expression)) +
 patient_plot
 ```
 
+  
   This plot shows similar features to the kmeans clustered gene expression 
 profiles. Specifically, clusters 1 and 2 have generally the highest normalized 
 expression while cluster 5 has the lowest range and cluster 4 has the lowest
@@ -616,6 +638,7 @@ heatmap.2(hc_dist,
           trace = "none")
 ```
 
+  
   This heatmap is a convenient visualization of what has been observed earlier
 within the dendogram - namely multiple small clusters of expression profiles 
 that cosegregate with other clusters to fit within a larger tree. This can be 
@@ -623,6 +646,7 @@ seen specifically along the top right hand corner of the heatmap, which
 designates several clusters of interest side by side. 
 
 # CONCLUSION
+
 
   These analyses represent a relevant and powerful intersection between popular
 unsupervised machine learning algorithms and genetic expression profiles 
